@@ -71,6 +71,15 @@ public class ObserverSet<Parameters>: Printable {
         }
     }
     
+    // Test helper
+    
+    public var observerCount: Int {
+        var count = 0
+        synchronized {
+            count = self.entries.count
+        }
+        return count
+    }
     
     // Printable
     

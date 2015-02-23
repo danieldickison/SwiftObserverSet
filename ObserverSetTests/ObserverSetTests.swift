@@ -70,14 +70,18 @@ class ObserverSetTests: XCTestCase {
     func testBasics() {
         let observee = TestObservee()
         var obj: TestObserver? = TestObserver(observee: observee)
-        
+
+        XCTAssertEqual(observee.intAndStringObservers.observerCount, 1)
         let token = observee.intAndStringObservers.add{ println("int and string closure: \($0) \($1)") }
+        XCTAssertEqual(observee.intAndStringObservers.observerCount, 2)
         println("intAndStringObservers: \(observee.intAndStringObservers.description)")
         
         observee.testNotify()
         obj = nil
         observee.testNotify()
+        XCTAssertEqual(observee.intAndStringObservers.observerCount, 1, "Deallocated method-based observer should be removed after notify")
         observee.intAndStringObservers.remove(token)
+        XCTAssertEqual(observee.intAndStringObservers.observerCount, 0, "Token-based observer should be removed immediately")
         observee.testNotify()
         
         println("intAndStringObservers: \(observee.intAndStringObservers.description)")
