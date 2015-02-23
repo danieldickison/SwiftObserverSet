@@ -11,9 +11,9 @@ import Foundation
 
 public class ObserverSetEntry<Parameters> {
     private weak var object: AnyObject?
-    private let f: AnyObject -> Parameters -> Void
+    private let f: Parameters -> Void
     
-    private init(object: AnyObject, f: AnyObject -> Parameters -> Void) {
+    private init(object: AnyObject, f: Parameters -> Void) {
         self.object = object
         self.f = f
     }
@@ -36,8 +36,8 @@ public class ObserverSet<Parameters>: Printable {
     
     public init() {}
     
-    public func add<T: AnyObject>(object: T, _ f: T -> Parameters -> Void) -> ObserverSetEntry<Parameters> {
-        let entry = ObserverSetEntry<Parameters>(object: object, f: { f($0 as! T) })
+    public func add<T: AnyObject>(object: T, _ f: Parameters -> Void) -> ObserverSetEntry<Parameters> {
+        let entry = ObserverSetEntry<Parameters>(object: object, f: f)
         synchronized {
             self.entries.append(entry)
         }
@@ -45,7 +45,7 @@ public class ObserverSet<Parameters>: Printable {
     }
     
     public func add(f: Parameters -> Void) -> ObserverSetEntry<Parameters> {
-        return self.add(self, { ignored in f })
+        return self.add(self, f)
     }
     
     public func remove(entry: ObserverSetEntry<Parameters>) {
@@ -60,7 +60,7 @@ public class ObserverSet<Parameters>: Printable {
         synchronized {
             for entry in self.entries {
                 if let object: AnyObject = entry.object {
-                    toCall.append(entry.f(object))
+                    toCall.append(entry.f)
                 }
             }
             self.entries = self.entries.filter{ $0.object != nil }
