@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		655BAB481A9B969600DB682B /* ObserverSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2CC54751A71D8FE0084E87D /* ObserverSet.swift */; };
 		C2CC54651A71D8610084E87D /* ObserverSet.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C2CC54591A71D8610084E87D /* ObserverSet.framework */; };
 		C2CC546C1A71D8610084E87D /* ObserverSetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2CC546B1A71D8610084E87D /* ObserverSetTests.swift */; };
 		C2CC54761A71D8FE0084E87D /* ObserverSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2CC54751A71D8FE0084E87D /* ObserverSet.swift */; };
@@ -216,6 +217,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				655BAB481A9B969600DB682B /* ObserverSet.swift in Sources */,
 				C2CC546C1A71D8610084E87D /* ObserverSetTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -400,6 +402,7 @@
 				C2CC54711A71D8610084E87D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		C2CC54721A71D8610084E87D /* Build configuration list for PBXNativeTarget "ObserverSetTests" */ = {
 			isa = XCConfigurationList;
@@ -408,6 +411,7 @@
 				C2CC54741A71D8610084E87D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

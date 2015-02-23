@@ -6,6 +6,8 @@
 //  Copyright (c) 2015 Mike Ash. All rights reserved.
 //
 
+import Foundation
+
 
 public class ObserverSetEntry<Parameters> {
     private weak var object: AnyObject?

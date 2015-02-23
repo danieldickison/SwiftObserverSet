@@ -9,8 +9,6 @@
 import Cocoa
 import XCTest
 
-import ObserverSet
-
 class ObserverSetTests: XCTestCase {
     class TestObservee {
         let voidObservers = ObserverSet<Void>()
