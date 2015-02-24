@@ -78,6 +78,38 @@ class ObserverSetTests: XCTestCase {
         }
     }
     
+    class QueueObserver {
+        private let queue = dispatch_queue_create("queued observer", DISPATCH_QUEUE_SERIAL)
+        private var context = UnsafeMutablePointer<Void>.alloc(1)
+        var count = 0
+        
+        init(observee: TestObservee) {
+            dispatch_queue_set_specific(queue, unsafeAddressOf(self), context, nil)
+            observee.voidObservers.add(self, queue: queue, self.dynamicType.voidOnQueue)
+            observee.voidObservers.add(self, self.dynamicType.voidOffQueue)
+        }
+        
+        deinit {
+            context.dealloc(1)
+        }
+        
+        func voidOnQueue() {
+            let specific = dispatch_get_specific(unsafeAddressOf(self))
+            XCTAssertEqual(specific, context, "Should dispatch on private queue")
+            count++
+        }
+        
+        func voidOffQueue() {
+            let specific = dispatch_get_specific(unsafeAddressOf(self))
+            XCTAssertEqual(specific, UnsafeMutablePointer(), "Should not dispatch on private queue")
+            count++
+        }
+        
+        func sync() {
+            dispatch_sync(queue) {}
+        }
+    }
+    
     func testBasics() {
         let observee = TestObservee()
         var obj: TestObserver? = TestObserver(observee: observee)
@@ -99,5 +131,24 @@ class ObserverSetTests: XCTestCase {
         XCTAssertEqual(closureValues, ["42", "hello", "42", "hello"], "Token-based observer should stop receiving")
         
         println("intAndStringObservers: \(observee.intAndStringObservers.description)")
+    }
+    
+    func testQueues() {
+        let observee = TestObservee()
+        let observer1 = QueueObserver(observee: observee)
+        var observer2: QueueObserver? = QueueObserver(observee: observee)
+        
+        XCTAssertEqual(observee.voidObservers.observerCount, 4)
+        observee.testNotify()
+        observer1.sync()
+        XCTAssertEqual(observer1.count, 2)
+        observer2!.sync()
+        XCTAssertEqual(observer2!.count, 2)
+        
+        observer2 = nil
+        observee.testNotify()
+        XCTAssertEqual(observee.voidObservers.observerCount, 2)
+        observer1.sync()
+        XCTAssertEqual(observer1.count, 4)
     }
 }

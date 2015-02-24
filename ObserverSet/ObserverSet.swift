@@ -11,10 +11,12 @@ import Foundation
 
 public class ObserverSetEntry<Parameters> {
     private weak var object: AnyObject?
+    private let queue: dispatch_queue_t?
     private let f: AnyObject -> Parameters -> Void
     
-    private init(object: AnyObject, f: AnyObject -> Parameters -> Void) {
+    private init(object: AnyObject, queue: dispatch_queue_t?, f: AnyObject -> Parameters -> Void) {
         self.object = object
+        self.queue = queue
         self.f = f
     }
 }
@@ -36,16 +38,16 @@ public class ObserverSet<Parameters>: Printable {
     
     public init() {}
     
-    public func add<T: AnyObject>(object: T, _ f: T -> Parameters -> Void) -> ObserverSetEntry<Parameters> {
-        let entry = ObserverSetEntry<Parameters>(object: object, f: { f($0 as! T) })
+    public func add<T: AnyObject>(object: T, queue: dispatch_queue_t? = nil, _ f: T -> Parameters -> Void) -> ObserverSetEntry<Parameters> {
+        let entry = ObserverSetEntry<Parameters>(object: object, queue: queue, f: { f($0 as! T) })
         synchronized {
             self.entries.append(entry)
         }
         return entry
     }
     
-    public func add(f: Parameters -> Void) -> ObserverSetEntry<Parameters> {
-        return self.add(self, { ignored in f })
+    public func add(queue: dispatch_queue_t? = nil, f: Parameters -> Void) -> ObserverSetEntry<Parameters> {
+        return self.add(self, queue: queue, { ignored in f })
     }
     
     public func remove(entry: ObserverSetEntry<Parameters>) {
@@ -55,19 +57,28 @@ public class ObserverSet<Parameters>: Printable {
     }
     
     public func notify(parameters: Parameters) {
-        var toCall: [Parameters -> Void] = []
+        var toCall: [ObserverSetEntry<Parameters>] = []
         
         synchronized {
-            for entry in self.entries {
-                if let object: AnyObject = entry.object {
-                    toCall.append(entry.f(object))
-                }
-            }
             self.entries = self.entries.filter{ $0.object != nil }
+            toCall = self.entries
         }
         
-        for f in toCall {
-            f(parameters)
+        for entry in toCall {
+            if let queue = entry.queue {
+                // This diverges from NSNotificationCenter which delivers notifications synchronously.
+                dispatch_async(queue) {self.notifyEntry(entry, parameters)}
+            }
+            else {
+                // If no queue is specified, deliver notification on the caller's thread synchronousl.
+                notifyEntry(entry, parameters)
+            }
+        }
+    }
+    
+    private func notifyEntry(entry: ObserverSetEntry<Parameters>, _ parameters: Parameters) {
+        if let object: AnyObject = entry.object {
+            entry.f(object)(parameters)
         }
     }
     
