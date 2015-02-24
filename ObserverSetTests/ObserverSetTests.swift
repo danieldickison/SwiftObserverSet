@@ -29,6 +29,9 @@ class ObserverSetTests: XCTestCase {
     }
     
     class TestObserver {
+        private(set) var receivedNotifications: [String] = []
+        let expectedNotifications = ["void", "Sup", "hello", "world", "42", "43", "42", "hello", "someName", "42"]
+        
         init(observee: TestObservee) {
             observee.voidObservers.add(self, voidSent)
             observee.stringObservers.add(self, stringChanged)
@@ -42,47 +45,58 @@ class ObserverSetTests: XCTestCase {
             println("deinit!!!!")
         }
         
+        func reset() {
+            receivedNotifications.removeAll()
+        }
+        
         func voidSent() {
-            println("void sent")
+            receivedNotifications.append("void")
         }
         
         func stringChanged(s: String) {
-            println("stringChanged: " + s)
+            receivedNotifications.append(s)
         }
         
         func twoStringChanged(s1: String, s2: String) {
-            println("twoStringChanged: \(s1) \(s2)")
+            receivedNotifications.append(s1)
+            receivedNotifications.append(s2)
         }
         
         func intChanged(i: Int, j: Int) {
-            println("intChanged: \(i) \(j)")
+            receivedNotifications.append(i.description)
+            receivedNotifications.append(j.description)
         }
         
         func intAndStringChanged(i: Int, s: String) {
-            println("intAndStringChanged: \(i) \(s)")
+            receivedNotifications.append(i.description)
+            receivedNotifications.append(s)
         }
         
         func namedParameterSent(name: String, count: Int) {
-            println("Named parameters: \(name) \(count)")
+            receivedNotifications.append(name)
+            receivedNotifications.append(count.description)
         }
     }
     
     func testBasics() {
         let observee = TestObservee()
         var obj: TestObserver? = TestObserver(observee: observee)
+        var closureValues: [String] = []
 
         XCTAssertEqual(observee.intAndStringObservers.observerCount, 1)
-        let token = observee.intAndStringObservers.add{ println("int and string closure: \($0) \($1)") }
+        let token = observee.intAndStringObservers.add{ closureValues.append($0.description); closureValues.append($1) }
         XCTAssertEqual(observee.intAndStringObservers.observerCount, 2)
-        println("intAndStringObservers: \(observee.intAndStringObservers.description)")
-        
         observee.testNotify()
+        XCTAssertEqual(closureValues, ["42", "hello"])
+        XCTAssertEqual(obj!.receivedNotifications, obj!.expectedNotifications)
         obj = nil
         observee.testNotify()
+        XCTAssertEqual(closureValues, ["42", "hello", "42", "hello"])
         XCTAssertEqual(observee.intAndStringObservers.observerCount, 1, "Deallocated method-based observer should be removed after notify")
         observee.intAndStringObservers.remove(token)
         XCTAssertEqual(observee.intAndStringObservers.observerCount, 0, "Token-based observer should be removed immediately")
         observee.testNotify()
+        XCTAssertEqual(closureValues, ["42", "hello", "42", "hello"], "Token-based observer should stop receiving")
         
         println("intAndStringObservers: \(observee.intAndStringObservers.description)")
     }
