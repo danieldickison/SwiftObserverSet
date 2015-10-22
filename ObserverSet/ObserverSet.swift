@@ -38,7 +38,7 @@ public class ObserverSet<Parameters>: CustomStringConvertible {
     
     public init() {}
     
-    public func add<T: AnyObject>(object: T, queue: dispatch_queue_t? = nil, _ f: T -> Parameters -> Void) -> ObserverSetEntry<Parameters> {
+    public func add<T: AnyObject>(object object: T, queue: dispatch_queue_t? = nil, _ f: T -> Parameters -> Void) -> ObserverSetEntry<Parameters> {
         let entry = ObserverSetEntry<Parameters>(object: object, queue: queue, f: { f($0 as! T) })
         synchronized {
             self.entries.append(entry)
@@ -46,8 +46,8 @@ public class ObserverSet<Parameters>: CustomStringConvertible {
         return entry
     }
     
-    public func add(queue: dispatch_queue_t? = nil, f: Parameters -> Void) -> ObserverSetEntry<Parameters> {
-        return self.add(self, queue: queue, { ignored in f })
+    public func add(queue queue: dispatch_queue_t? = nil, f: Parameters -> Void) -> ObserverSetEntry<Parameters> {
+        return self.add(object: self, queue: queue) { ignored in f }
     }
     
     public func remove(entry: ObserverSetEntry<Parameters>) {
@@ -108,7 +108,7 @@ public class ObserverSet<Parameters>: CustomStringConvertible {
         }
         let joined = strings.joinWithSeparator(", ")
         
-        return "\(reflect(self).summary): (\(joined))"
+        return "\(Mirror(reflecting:self)): (\(joined))"
     }
 }
 
